@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'screens/pairing_screen.dart';
-import 'screens/dashboard_screen.dart';
-import 'api/homevault_api.dart';
+import 'screens/main_shell.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,12 +32,14 @@ class HomeVaultApp extends StatelessWidget {
         cardTheme: CardThemeData(
           color: const Color(0xFF141A24),
           elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+        navigationBarTheme: NavigationBarThemeData(
+          backgroundColor: const Color(0xFF141A24),
+          indicatorColor: const Color(0xFF3B82F6).withValues(alpha: 0.2),
         ),
       ),
-      home: paired ? const DashboardScreen() : const PairingScreen(),
+      home: paired ? const MainShell() : const PairingScreen(),
     );
   }
 }
