@@ -29,15 +29,15 @@ HomeVault is a pre-configured home server solution that runs on Proxmox VE. It u
 
 | Component | Minimum | Recommended |
 |-----------|---------|-------------|
-| CPU | Intel N5095 or similar | Intel N100+ |
+| CPU | Intel I5-4310U or similar | Intel N100+ |
 | RAM | 8 GB | 16 GB |
 | Storage | 128 GB SSD | 256 GB+ SSD |
 | Network | Ethernet port | Gigabit Ethernet |
 | USB | 16 GB USB stick (for installation) | - |
 
 ### Tested Hardware
-- MLLSE M2 (Intel N5095, 8GB RAM, 128GB SSD)
-- Teclast N20 (Intel N5095, 8GB RAM, 128GB SSD)
+- MLLSE M2 (Intel I5-4310U, 8GB RAM, 128GB SSD)
+- Teclast N20 (Intel N5095, 16GB RAM, 512GB SSD)
 
 ---
 
