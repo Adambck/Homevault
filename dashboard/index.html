@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>HomeVault</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#060a12;--card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.06);--text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;--text4:#475569;--blue:#3b82f6;--green:#4ade80;--red:#ef4444;--radius:12px}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.hidden{display:none!important}
+
+/* Setup Wizard */
+.wizard{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.wizard-box{max-width:400px;width:100%;text-align:center}
+.wizard-icon{font-size:64px;margin-bottom:20px}
+.wizard h1{font-size:26px;font-weight:700;margin-bottom:10px}
+.wizard p{font-size:15px;color:var(--text3);line-height:1.6;margin-bottom:32px}
+.wizard .step-label{font-size:13px;color:var(--text4);margin-bottom:24px;text-transform:uppercase;letter-spacing:0.06em}
+.wizard input{width:100%;padding:14px 16px;font-size:16px;border:1px solid var(--border);border-radius:var(--radius);background:rgba(255,255,255,0.04);color:var(--text);outline:none;margin-bottom:20px;font-family:inherit}
+.wizard input:focus{border-color:var(--blue)}
+.btn{width:100%;padding:14px 24px;font-size:15px;font-weight:600;border:none;border-radius:var(--radius);background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;cursor:pointer;font-family:inherit;transition:opacity 0.2s}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+.btn-ghost{background:rgba(255,255,255,0.06)}
+.btn-row{display:flex;gap:10px}
+.btn-row .btn{flex:1}
+.btn-row .btn:last-child{flex:2}
+.lang-btn{display:flex;align-items:center;gap:12px;width:100%;padding:14px 18px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card);color:var(--text);font-size:15px;cursor:pointer;font-family:inherit;text-align:left;margin-bottom:8px;transition:border-color 0.2s}
+.lang-btn.active{border:2px solid var(--blue);background:rgba(59,130,246,0.08)}
+.lang-btn .flag{font-size:22px}
+.lang-btn .label{font-weight:400}
+.lang-btn.active .label{font-weight:600}
+
+/* App Shell */
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:rgba(6,10,18,0.9);backdrop-filter:blur(16px);position:sticky;top:0;z-index:20}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-icon{font-size:20px}
+.logo-text{font-size:16px;font-weight:700;letter-spacing:-0.02em}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.pill.online{background:rgba(74,222,128,0.1);color:var(--green)}
+.pill.offline{background:rgba(239,68,68,0.1);color:var(--red)}
+.pill.checking{background:rgba(100,116,139,0.1);color:var(--text3)}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.dot.online{background:var(--green);box-shadow:0 0 8px var(--green)}
+.dot.offline{background:var(--red)}
+.dot.checking{background:var(--text3)}
+
+.main{max-width:640px;width:100%;margin:0 auto;padding:20px 14px 100px}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;transition:background 0.2s}
+.card:hover{background:rgba(255,255,255,0.05)}
+.card-p{padding:20px}
+.section-label{font-size:13px;font-weight:600;color:var(--text3);margin-bottom:12px;letter-spacing:0.01em}
+
+/* Hero */
+.hero{padding:26px 22px;border-radius:14px;margin-bottom:20px}
+.hero.good{background:linear-gradient(135deg,rgba(74,222,128,0.07),rgba(34,197,94,0.03));border:1px solid rgba(74,222,128,0.12)}
+.hero.bad{background:linear-gradient(135deg,rgba(248,113,113,0.07),rgba(239,68,68,0.03));border:1px solid rgba(248,113,113,0.12)}
+.hero-sub{font-size:13px;color:var(--text2);margin-bottom:2px}
+.hero-title{font-size:22px;font-weight:700;margin-bottom:4px}
+.hero-desc{font-size:13px;color:var(--text3)}
+
+/* Stats grid */
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+.stat{padding:16px 14px}
+.stat-label{font-size:11px;color:var(--text3);margin-bottom:6px}
+.stat-value{font-size:22px;font-weight:700;letter-spacing:-0.02em}
+.stat-value.small{font-size:14px;font-family:monospace;word-break:break-all}
+.stat-sub{font-size:11px;color:var(--text4);margin-top:2px}
+
+/* Service rows */
+.svc-list{display:flex;flex-direction:column;gap:6px;margin-bottom:20px}
+.svc-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.05);text-decoration:none;color:inherit;transition:opacity 0.3s,background 0.2s}
+.svc-row:hover{background:rgba(255,255,255,0.06)}
+.svc-row.off{opacity:0.4}
+.svc-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.svc-info{flex:1}
+.svc-name{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.svc-desc{font-size:11px;color:var(--text3);margin-top:2px}
+.svc-port{font-size:11px;color:var(--text4);font-family:monospace;margin-top:3px}
+.badge-plus{font-size:8px;font-weight:700;background:linear-gradient(135deg,#a855f7,#6d28d9);color:#fff;padding:1px 5px;border-radius:3px;letter-spacing:0.06em}
+
+/* Quick actions */
+.actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.action-btn{display:flex;align-items:center;gap:10px;padding:13px 14px;border-radius:10px;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.05);text-decoration:none;color:#cbd5e1;font-size:13px;font-weight:500;transition:background 0.2s}
+.action-btn:hover{background:rgba(255,255,255,0.06)}
+.action-icon{font-size:16px}
+
+/* Services tab - categories */
+.cat-section{margin-bottom:26px}
+.svc-card{padding:16px 18px;margin-bottom:8px}
+.svc-card-inner{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:14px;text-decoration:none;color:inherit}
+.svc-card .svc-icon{width:48px;height:48px;border-radius:12px;font-size:24px}
+
+/* Files tab */
+.files-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.files-title{font-size:18px;font-weight:700}
+.files-sub{font-size:13px;color:var(--text3);margin-top:2px}
+.files-frame{border-radius:14px;overflow:hidden;border:1px solid var(--border);margin-bottom:16px}
+.files-frame iframe{width:100%;height:400px;border:none;background:#0f172a}
+.nc-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:var(--radius);background:#0082c9;text-decoration:none;color:#fff;font-size:14px;font-weight:600}
+
+/* Network tab */
+.net-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.net-row:last-child{border-bottom:none}
+.net-label{font-size:13px;color:var(--text3)}
+.net-value{font-size:13px;color:var(--text);font-family:monospace}
+.ports-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.port-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.02);font-size:12px}
+.port-name{color:var(--text2);flex:1}
+.port-num{color:var(--text4);font-family:monospace;font-size:11px}
+.dns-tip{background:rgba(104,188,113,0.06);border:1px solid rgba(104,188,113,0.1);border-radius:14px;padding:20px;margin-top:16px}
+.dns-tip-title{font-size:14px;font-weight:600;color:#68bc71;margin-bottom:8px}
+.dns-tip-text{font-size:13px;color:var(--text2);line-height:1.6}
+
+/* Settings tab */
+.setting-row{display:flex;align-items:center;gap:12px;padding:12px 0;text-decoration:none;color:inherit;border-bottom:1px solid rgba(255,255,255,0.04)}
+.setting-row:last-child{border-bottom:none}
+.setting-icon{font-size:18px}
+.setting-info{flex:1}
+.setting-name{font-size:14px;font-weight:500}
+.setting-desc{font-size:12px;color:var(--text3)}
+.setting-arrow{color:var(--text4)}
+.lang-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.lang-chip{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;transition:border-color 0.2s}
+.lang-chip.active{border:2px solid var(--blue);background:rgba(59,130,246,0.1);font-weight:600}
+.about-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.about-row:last-child{border-bottom:none}
+.about-label{font-size:13px;color:var(--text3)}
+.about-value{font-size:13px;color:var(--text)}
+.reset-row{display:flex;justify-content:space-between;align-items:center}
+.reset-btn{padding:8px 14px;border-radius:8px;border:1px solid rgba(239,68,68,0.3);background:transparent;color:var(--red);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+.reset-confirm{padding:8px 14px;border-radius:8px;border:none;background:var(--red);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+.reset-cancel{padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit}
+.brand-footer{text-align:center;padding:24px 0;font-size:12px;color:#334155}
+
+/* Bottom nav */
+.nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-around;padding:8px 0 max(8px,env(safe-area-inset-bottom));background:rgba(6,10,18,0.94);backdrop-filter:blur(20px);border-top:1px solid var(--border);z-index:30}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;border:none;background:none;color:var(--text4);cursor:pointer;font-size:10px;font-weight:600;font-family:inherit;transition:color 0.2s}
+.nav-btn.active{color:var(--blue)}
+.nav-icon{font-size:17px;line-height:1}
+
+/* RTL */
+[dir=rtl] .svc-row,.svc-card-inner{direction:rtl}
+
+@media(max-width:480px){
+  .stats{grid-template-columns:1fr}
+  .hero-title{font-size:20px}
+  .actions-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════ SETUP WIZARD ════════ -->
+<div id="wizard" class="wizard">
+<div class="wizard-box">
+  <div id="wz0">
+    <div class="wizard-icon">🏠</div>
+    <h1 id="wz-title"></h1>
+    <p id="wz-desc"></p>
+    <button class="btn" onclick="wzStep(1)" id="wz-start-btn"></button>
+  </div>
+  <div id="wz1" class="hidden">
+    <div class="step-label" id="wz1-label"></div>
+    <div id="wz-langs"></div>
+    <button class="btn" onclick="wzStep(2)" id="wz1-btn"></button>
+  </div>
+  <div id="wz2" class="hidden">
+    <div class="step-label" id="wz2-label"></div>
+    <p style="font-size:13px;color:#64748b;margin-bottom:20px" id="wz2-hint"></p>
+    <input type="text" id="wz-name" oninput="document.getElementById('wz2-btn').disabled=this.value.length<1">
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="wzStep(1)" id="wz2-back"></button>
+      <button class="btn" id="wz2-btn" disabled onclick="finishSetup()"></button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════ APP ════════ -->
+<div id="app" class="hidden">
+<header class="header">
+  <div class="logo"><span class="logo-icon">🏠</span><span class="logo-text">HomeVault</span></div>
+  <span id="global-pill" class="pill checking"><span class="dot checking"></span><span id="global-pill-text">...</span></span>
+</header>
+
+<main class="main">
+  <!-- HOME -->
+  <div id="tab-home" class="tab-content active">
+    <div id="hero" class="hero good">
+      <div class="hero-sub" id="hero-greeting"></div>
+      <div class="hero-title" id="hero-title"></div>
+      <div class="hero-desc" id="hero-desc"></div>
+    </div>
+    <div class="stats" id="stats-row"></div>
+    <div class="section-label" id="home-svc-label"></div>
+    <div class="svc-list" id="home-svc-list"></div>
+    <div class="section-label" id="home-action-label"></div>
+    <div class="actions-grid" id="home-actions"></div>
+  </div>
+
+  <!-- SERVICES -->
+  <div id="tab-services" class="tab-content"></div>
+
+  <!-- FILES -->
+  <div id="tab-files" class="tab-content">
+    <div class="files-header"><div><div class="files-title" id="files-title"></div><div class="files-sub" id="files-sub"></div></div></div>
+    <div class="files-frame"><iframe id="files-iframe" src="about:blank"></iframe></div>
+    <a id="files-nc-btn" class="nc-btn" target="_blank"></a>
+  </div>
+
+  <!-- NETWORK -->
+  <div id="tab-network" class="tab-content"></div>
+
+  <!-- SETTINGS -->
+  <div id="tab-settings" class="tab-content"></div>
+</main>
+
+<nav class="nav" id="nav"></nav>
+</div>
+
+<script>
+var H=location.hostname==='localhost'||location.hostname.includes('claude')?'192.168.128.201':location.hostname;
+var PX=H.split('.').slice(0,3).join('.')+'.200';
+var SN=H.split('.').slice(0,3).join('.');
+
+var SVCS=[
+{id:'nextcloud',n:'Nextcloud',d_nl:'Bestanden, contacten en agenda',d_fr:'Fichiers, contacts et agenda',d_en:'Files, contacts and calendar',d_ar:'ملفات وجهات اتصال وتقويم',p:8080,c:'#0082c9',cat:'storage',i:'☁️'},
+{id:'adguard',n:'AdGuard Home',d_nl:'DNS-gebaseerde advertentieblocker',d_fr:'Bloqueur de publicités DNS',d_en:'DNS-based ad blocker',d_ar:'حاجب إعلانات DNS',p:8053,c:'#68bc71',cat:'network',i:'🛡️'},
+{id:'uptime',n:'Uptime Kuma',d_nl:'Service monitoring & alerts',d_fr:'Surveillance et alertes',d_en:'Service monitoring & alerts',d_ar:'مراقبة الخدمات والتنبيهات',p:3001,c:'#5cdd8b',cat:'system',i:'📊'},
+{id:'portainer',n:'Portainer',d_nl:'Docker container beheer',d_fr:'Gestion des conteneurs Docker',d_en:'Docker container management',d_ar:'إدارة حاويات Docker',p:9000,c:'#13b5ea',cat:'system',i:'🐳'},
+{id:'jellyfin',n:'Jellyfin',d_nl:'Stream films, series en muziek',d_fr:'Streaming films, séries et musique',d_en:'Stream movies, series and music',d_ar:'بث الأفلام والمسلسلات والموسيقى',p:8096,c:'#aa5cc3',cat:'media',i:'🎬',plus:1},
+{id:'wireguard',n:'WireGuard VPN',d_nl:'Veilige externe toegang',d_fr:'Accès distant sécurisé',d_en:'Secure remote access',d_ar:'وصول آمن عن بعد',p:51820,c:'#88171a',cat:'network',i:'🔐',plus:1,noWeb:1}
+];
+
+var T={
+nl:{tabs:['Home','Services','Bestanden','Netwerk','Instellingen'],gr:['Goedenacht','Goedemorgen','Goedemiddag','Goedenavond'],st:['Online','Offline','Laden'],good:'Alles draait perfect',bad:'{n} van {t} services actief',gdesc:'Je HomeVault is volledig operationeel.',bdesc:'Sommige services hebben aandacht nodig.',stats:['Services','actief','Server IP','lokaal netwerk','Opslag','beschikbaar'],qa:'Snelle acties',acts:['Bestanden','Monitoring','DNS Blocker','Media'],cats:['Opslag & Bestanden','Media & Entertainment','Netwerk & Beveiliging','Systeem & Monitoring'],ftitle:'Bestanden',fsub:'Beheer je bestanden via Nextcloud',fnc:'Open Nextcloud',net:'Netwerk informatie',netr:['Server IP','Subnet','Gateway','DNS Server','VPN'],ports:'Poorten overzicht',dnst:'DNS instellen',dnsd:'Stel het DNS-adres in op {ip} in je router om advertenties te blokkeren op al je apparaten.',set:'Instellingen',slang:'Taal',slangd:'Kies je voorkeurstaal',ssys:'Systeembeheer',sabout:'Over HomeVault',sver:'Versie',sprof:'Profiel',splat:'Platform',scont:'Container',sreset:'Dashboard resetten',sresetd:'Wis alle lokale instellingen',sresetc:'Weet je het zeker?',tag:'Jouw data. Jouw huis. Jouw regels.',wz:['Welkom bij HomeVault','Jouw persoonlijke thuisserver is klaar voor gebruik.','Aan de slag','Kies je taal','Volgende','Hoe heet je?','We personaliseren je dashboard.','Je naam','Terug','Start HomeVault']},
+fr:{tabs:['Accueil','Services','Fichiers','Réseau','Paramètres'],gr:['Bonne nuit','Bonjour','Bon après-midi','Bonsoir'],st:['En ligne','Hors ligne','Chargement'],good:'Tout fonctionne parfaitement',bad:'{n} sur {t} services actifs',gdesc:'Votre HomeVault est entièrement opérationnel.',bdesc:'Certains services nécessitent votre attention.',stats:['Services','actifs','IP Serveur','réseau local','Stockage','disponible'],qa:'Actions rapides',acts:['Fichiers','Monitoring','Bloqueur DNS','Médias'],cats:['Stockage & Fichiers','Médias & Divertissement','Réseau & Sécurité','Système & Monitoring'],ftitle:'Fichiers',fsub:'Gérez vos fichiers via Nextcloud',fnc:'Ouvrir Nextcloud',net:'Informations réseau',netr:['IP Serveur','Sous-réseau','Passerelle','Serveur DNS','VPN'],ports:'Aperçu des ports',dnst:'Configurer le DNS',dnsd:'Définissez l\'adresse DNS sur {ip} dans votre routeur pour bloquer les publicités.',set:'Paramètres',slang:'Langue',slangd:'Choisissez votre langue préférée',ssys:'Administration système',sabout:'À propos de HomeVault',sver:'Version',sprof:'Profil',splat:'Plateforme',scont:'Conteneur',sreset:'Réinitialiser',sresetd:'Effacer tous les paramètres',sresetc:'Êtes-vous sûr ?',tag:'Vos données. Votre maison. Vos règles.',wz:['Bienvenue sur HomeVault','Votre serveur personnel est prêt.','Commencer','Choisissez votre langue','Suivant','Comment vous appelez-vous ?','Nous personnalisons votre tableau de bord.','Votre nom','Retour','Démarrer HomeVault']},
+en:{tabs:['Home','Services','Files','Network','Settings'],gr:['Good night','Good morning','Good afternoon','Good evening'],st:['Online','Offline','Loading'],good:'Everything is running perfectly',bad:'{n} of {t} services active',gdesc:'Your HomeVault is fully operational.',bdesc:'Some services need attention.',stats:['Services','active','Server IP','local network','Storage','available'],qa:'Quick actions',acts:['Files','Monitoring','DNS Blocker','Media'],cats:['Storage & Files','Media & Entertainment','Network & Security','System & Monitoring'],ftitle:'Files',fsub:'Manage your files via Nextcloud',fnc:'Open Nextcloud',net:'Network information',netr:['Server IP','Subnet','Gateway','DNS Server','VPN'],ports:'Ports overview',dnst:'Configure DNS',dnsd:'Set the DNS address to {ip} in your router to block ads on all devices.',set:'Settings',slang:'Language',slangd:'Choose your preferred language',ssys:'System administration',sabout:'About HomeVault',sver:'Version',sprof:'Profile',splat:'Platform',scont:'Container',sreset:'Reset dashboard',sresetd:'Clear all local settings',sresetc:'Are you sure?',tag:'Your data. Your home. Your rules.',wz:['Welcome to HomeVault','Your personal home server is ready.','Get started','Choose your language','Next','What\'s your name?','We\'ll personalize your dashboard.','Your name','Back','Start HomeVault']},
+ar:{tabs:['الرئيسية','الخدمات','الملفات','الشبكة','الإعدادات'],gr:['تصبح على خير','صباح الخير','مساء الخير','مساء الخير'],st:['متصل','غير متصل','جاري التحميل'],good:'كل شيء يعمل بشكل مثالي',bad:'{n} من {t} خدمات نشطة',gdesc:'خادمك يعمل بكامل طاقته.',bdesc:'بعض الخدمات تحتاج انتباهك.',stats:['الخدمات','نشط','عنوان IP','شبكة محلية','التخزين','متاح'],qa:'إجراءات سريعة',acts:['الملفات','المراقبة','حظر DNS','الوسائط'],cats:['التخزين والملفات','الوسائط والترفيه','الشبكة والأمان','النظام والمراقبة'],ftitle:'الملفات',fsub:'إدارة ملفاتك عبر Nextcloud',fnc:'فتح Nextcloud',net:'معلومات الشبكة',netr:['عنوان IP','الشبكة الفرعية','البوابة','خادم DNS','VPN'],ports:'نظرة عامة على المنافذ',dnst:'إعداد DNS',dnsd:'اضبط عنوان DNS على {ip} في جهاز التوجيه لحظر الإعلانات.',set:'الإعدادات',slang:'اللغة',slangd:'اختر لغتك المفضلة',ssys:'إدارة النظام',sabout:'حول HomeVault',sver:'الإصدار',sprof:'الملف الشخصي',splat:'المنصة',scont:'الحاوية',sreset:'إعادة تعيين',sresetd:'مسح جميع الإعدادات',sresetc:'هل أنت متأكد؟',tag:'بياناتك. منزلك. قواعدك.',wz:['مرحبا بك في HomeVault','خادمك الشخصي جاهز.','ابدأ','اختر لغتك','التالي','ما اسمك؟','سنخصص لوحة التحكم لك.','اسمك','رجوع','ابدأ HomeVault']}
+};
+
+var FLAGS={nl:'🇳🇱',fr:'🇫🇷',en:'🇬🇧',ar:'🇲🇦'};
+var LNAMES={nl:'Nederlands',fr:'Français',en:'English',ar:'العربية'};
+var CATIDS=['storage','media','network','system'];
+var cfg=null,lang='nl',statuses={},curTab='home';
+
+// ── Config ──
+function loadCfg(){try{var s=localStorage.getItem('hv3');if(s){cfg=JSON.parse(s);lang=cfg.lang||'nl'}}catch(e){}}
+function saveCfg(){try{localStorage.setItem('hv3',JSON.stringify(cfg))}catch(e){}}
+function clearCfg(){cfg=null;try{localStorage.removeItem('hv3')}catch(e){};location.reload()}
+
+// ── Wizard ──
+var wzLang='nl';
+function initWizard(){
+  wzLang='nl';
+  updateWzText();
+}
+function updateWzText(){
+  var w=T[wzLang].wz;
+  document.getElementById('wz-title').textContent=w[0];
+  document.getElementById('wz-desc').textContent=w[1];
+  document.getElementById('wz-start-btn').textContent=w[2];
+  document.getElementById('wz1-label').textContent=w[3];
+  document.getElementById('wz1-btn').textContent=w[4];
+  document.getElementById('wz2-label').textContent=w[5];
+  document.getElementById('wz2-hint').textContent=w[6];
+  document.getElementById('wz-name').placeholder=w[7];
+  document.getElementById('wz2-back').textContent=w[8];
+  document.getElementById('wz2-btn').textContent=w[9];
+  // Build lang buttons
+  var c=document.getElementById('wz-langs');c.innerHTML='';
+  Object.keys(T).forEach(function(k){
+    var b=document.createElement('button');b.className='lang-btn'+(k===wzLang?' active':'');
+    b.innerHTML='<span class="flag">'+FLAGS[k]+'</span><span class="label">'+LNAMES[k]+'</span>';
+    b.onclick=function(){wzLang=k;updateWzText()};
+    c.appendChild(b);
+  });
+}
+function wzStep(n){
+  document.getElementById('wz0').classList.toggle('hidden',n!==0);
+  document.getElementById('wz1').classList.toggle('hidden',n!==1);
+  document.getElementById('wz2').classList.toggle('hidden',n!==2);
+  if(n===2)document.getElementById('wz-name').focus();
+}
+function finishSetup(){
+  cfg={name:document.getElementById('wz-name').value,lang:wzLang};
+  lang=wzLang;saveCfg();
+  document.getElementById('wizard').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+  buildApp();
+  checkAll();
+}
+
+// ── Translations helper ──
+function t(){return T[lang]}
+function svcDesc(s){return s['d_'+lang]||s.d_en}
+
+// ── Status check ──
+async function checkAll(){
+  for(var i=0;i<SVCS.length;i++){
+    var s=SVCS[i];
+    if(s.noWeb){statuses[s.id]='online';updateSvcDots(s.id,'online');continue}
+    try{
+      var c=new AbortController();var tm=setTimeout(function(){c.abort()},4000);
+      await fetch('http://'+H+':'+s.p+'/',{mode:'no-cors',signal:c.signal});
+      clearTimeout(tm);statuses[s.id]='online';
+    }catch(e){statuses[s.id]='offline'}
+    updateSvcDots(s.id,statuses[s.id]);
+  }
+  updateGlobal();
+}
+function updateSvcDots(id,st){
+  document.querySelectorAll('.dot-'+id).forEach(function(d){d.className='dot dot-'+id+' '+st});
+  document.querySelectorAll('.pill-'+id).forEach(function(p){
+    p.className='pill pill-'+id+' '+st;
+    p.querySelector('span:last-child').textContent=t().st[st==='online'?0:1];
+  });
+  document.querySelectorAll('.svc-row-'+id).forEach(function(r){r.classList.toggle('off',st!=='online')});
+}
+function updateGlobal(){
+  var on=0;SVCS.forEach(function(s){if(statuses[s.id]==='online')on++});
+  var all=on===SVCS.length;
+  var gp=document.getElementById('global-pill');
+  gp.className='pill '+(all?'online':'offline');
+  gp.querySelector('.dot').className='dot '+(all?'online':'offline');
+  document.getElementById('global-pill-text').textContent=on+'/'+SVCS.length+' '+(all?t().st[0]:'');
+  // Hero
+  var hero=document.getElementById('hero');
+  hero.className='hero '+(all?'good':'bad');
+  document.getElementById('hero-title').textContent=all?t().good:t().bad.replace('{n}',on).replace('{t}',SVCS.length);
+  document.getElementById('hero-desc').textContent=all?t().gdesc:t().bdesc;
+  // Stats
+  var sv=document.querySelector('.stat-value-svc');
+  if(sv){sv.textContent=on+'/'+SVCS.length;sv.style.color=all?'var(--green)':'var(--red)'}
+}
+
+// ── Build app ──
+function buildApp(){
+  buildNav();buildHome();buildServices();buildFiles();buildNetwork();buildSettings();
+  var h=new Date().getHours();
+  var gi=h<6?0:h<12?1:h<18?2:3;
+  document.getElementById('hero-greeting').textContent=t().gr[gi]+(cfg.name?', '+cfg.name:'');
+}
+
+function buildNav(){
+  var nav=document.getElementById('nav');nav.innerHTML='';
+  var icons=['⬡','◫','◧','◈','⚙'];
+  var ids=['home','services','files','network','settings'];
+  t().tabs.forEach(function(label,i){
+    var b=document.createElement('button');
+    b.className='nav-btn'+(ids[i]===curTab?' active':'');
+    b.innerHTML='<span class="nav-icon">'+icons[i]+'</span>'+label;
+    b.onclick=function(){switchTab(ids[i])};
+    nav.appendChild(b);
+  });
+}
+
+function switchTab(id){
+  curTab=id;
+  document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('active')});
+  document.getElementById('tab-'+id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(function(b,i){
+    b.classList.toggle('active',['home','services','files','network','settings'][i]===id);
+  });
+  if(id==='files'){
+    var ifr=document.getElementById('files-iframe');
+    if(ifr.src==='about:blank')ifr.src='http://'+H+':8080/apps/files/';
+  }
+}
+
+function buildHome(){
+  // Stats
+  var sr=document.getElementById('stats-row');sr.innerHTML='';
+  sr.innerHTML='<div class="card stat"><div class="stat-label">'+t().stats[0]+'</div><div class="stat-value stat-value-svc" style="color:var(--text3)">-/-</div><div class="stat-sub">'+t().stats[1]+'</div></div>'
+    +'<div class="card stat"><div class="stat-label">'+t().stats[2]+'</div><div class="stat-value small">'+H+'</div><div class="stat-sub">'+t().stats[3]+'</div></div>'
+    +'<div class="card stat"><div class="stat-label">'+t().stats[4]+'</div><div class="stat-value">25<span style="font-size:13px;font-weight:400">GB</span></div><div class="stat-sub">'+t().stats[5]+'</div></div>';
+  // Service list
+  document.getElementById('home-svc-label').textContent=t().tabs[1];
+  var sl=document.getElementById('home-svc-list');sl.innerHTML='';
+  SVCS.forEach(function(s){
+    var a=document.createElement('a');
+    a.href=s.noWeb?'javascript:void(0)':'http://'+H+':'+s.p;
+    a.target=s.noWeb?'':'_blank';
+    a.className='svc-row svc-row-'+s.id;
+    a.innerHTML='<span class="svc-icon" style="background:'+s.c+'14">'+s.i+'</span>'
+      +'<div class="svc-info"><div class="svc-name">'+s.n+(s.plus?' <span class="badge-plus">PLUS</span>':'')+'</div></div>'
+      +'<span class="pill pill-'+s.id+' checking"><span class="dot dot-'+s.id+' checking"></span><span>'+t().st[2]+'</span></span>';
+    sl.appendChild(a);
+  });
+  // Quick actions
+  document.getElementById('home-action-label').textContent=t().qa;
+  var ag=document.getElementById('home-actions');ag.innerHTML='';
+  var ap=[8080,3001,8053,8096],ai=['📁','📊','🛡️','🎬'];
+  t().acts.forEach(function(l,i){
+    ag.innerHTML+='<a class="action-btn" href="http://'+H+':'+ap[i]+'" target="_blank"><span class="action-icon">'+ai[i]+'</span>'+l+'</a>';
+  });
+}
+
+function buildServices(){
+  var el=document.getElementById('tab-services');el.innerHTML='';
+  var catMap={storage:0,media:1,network:2,system:3};
+  CATIDS.forEach(function(cid,ci){
+    var svcs=SVCS.filter(function(s){return s.cat===cid});
+    if(!svcs.length)return;
+    var sec=document.createElement('div');sec.className='cat-section';
+    sec.innerHTML='<div class="section-label">'+t().cats[ci]+'</div>';
+    svcs.forEach(function(s){
+      var d=document.createElement('div');d.className='card svc-card svc-row-'+s.id;
+      d.style.opacity=statuses[s.id]==='online'||!statuses[s.id]?'1':'0.4';
+      d.innerHTML='<a class="svc-card-inner" href="'+(s.noWeb?'javascript:void(0)':'http://'+H+':'+s.p)+'" target="'+(s.noWeb?'':'_blank')+'">'
+        +'<span class="svc-icon" style="background:'+s.c+'12">'+s.i+'</span>'
+        +'<div><div class="svc-name">'+s.n+(s.plus?' <span class="badge-plus">PLUS</span>':'')+'</div>'
+        +'<div class="svc-desc">'+svcDesc(s)+'</div>'
+        +'<div class="svc-port">'+(s.noWeb?'UDP :'+s.p:'http://'+H+':'+s.p)+'</div></div>'
+        +'<span class="pill pill-'+s.id+' checking"><span class="dot dot-'+s.id+' checking"></span><span>'+t().st[2]+'</span></span></a>';
+      sec.appendChild(d);
+    });
+    el.appendChild(sec);
+  });
+}
+
+function buildFiles(){
+  document.getElementById('files-title').textContent=t().ftitle;
+  document.getElementById('files-sub').textContent=t().fsub;
+  var btn=document.getElementById('files-nc-btn');
+  btn.href='http://'+H+':8080';btn.textContent='☁️ '+t().fnc;
+}
+
+function buildNetwork(){
+  var el=document.getElementById('tab-network');el.innerHTML='';
+  var vals=[H,SN+'.0/23',SN+'.1',H+' :53','UDP :51820'];
+  var h='<div class="card card-p" style="margin-bottom:16px"><div style="font-size:15px;font-weight:600;margin-bottom:16px">'+t().net+'</div>';
+  t().netr.forEach(function(l,i){
+    h+='<div class="net-row"><span class="net-label">'+l+'</span><span class="net-value">'+vals[i]+'</span></div>';
+  });
+  h+='</div>';
+  h+='<div class="card card-p" style="margin-bottom:16px"><div style="font-size:15px;font-weight:600;margin-bottom:14px">'+t().ports+'</div><div class="ports-grid">';
+  SVCS.forEach(function(s){
+    h+='<div class="port-item"><span style="font-size:14px">'+s.i+'</span><span class="port-name">'+s.n+'</span><span class="port-num">:'+s.p+'</span></div>';
+  });
+  h+='</div></div>';
+  h+='<div class="dns-tip"><div class="dns-tip-title">🛡️ '+t().dnst+'</div><div class="dns-tip-text">'+t().dnsd.replace('{ip}','<code style="color:var(--text);background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px">'+H+'</code>')+'</div></div>';
+  el.innerHTML=h;
+}
+
+function buildSettings(){
+  var el=document.getElementById('tab-settings');el.innerHTML='';
+  // Language
+  var h='<div class="card card-p" style="margin-bottom:16px"><div style="font-size:15px;font-weight:600;margin-bottom:4px">'+t().slang+'</div><div style="font-size:12px;color:var(--text3);margin-bottom:14px">'+t().slangd+'</div><div class="lang-chips" id="set-langs"></div></div>';
+  // System
+  h+='<div class="card card-p" style="margin-bottom:16px"><div style="font-size:15px;font-weight:600;margin-bottom:14px">'+t().ssys+'</div>';
+  [{l:'Proxmox',d:'Server management',u:'https://'+PX+':8006',i:'🖥️'},{l:'Portainer',d:'Docker containers',u:'http://'+H+':9000',i:'🐳'},{l:'Uptime Kuma',d:'Monitoring',u:'http://'+H+':3001',i:'📊'}].forEach(function(item,i,a){
+    h+='<a class="setting-row" href="'+item.u+'" target="_blank" style="'+(i<a.length-1?'':'border-bottom:none')+'"><span class="setting-icon">'+item.i+'</span><div class="setting-info"><div class="setting-name">'+item.l+'</div><div class="setting-desc">'+item.d+'</div></div><span class="setting-arrow">→</span></a>';
+  });
+  h+='</div>';
+  // About
+  h+='<div class="card card-p" style="margin-bottom:16px"><div style="font-size:15px;font-weight:600;margin-bottom:14px">'+t().sabout+'</div>';
+  [{l:t().sver,v:'2.0'},{l:t().sprof,v:'HomeVault Plus'},{l:t().splat,v:'Proxmox VE 9.2'},{l:t().scont,v:'Debian 12 + Docker'}].forEach(function(r,i,a){
+    h+='<div class="about-row" style="'+(i<a.length-1?'':'border-bottom:none')+'"><span class="about-label">'+r.l+'</span><span class="about-value">'+r.v+'</span></div>';
+  });
+  h+='</div>';
+  // Reset
+  h+='<div class="card card-p" style="margin-bottom:16px" id="reset-card"><div class="reset-row"><div><div style="font-size:14px;font-weight:500">'+t().sreset+'</div><div style="font-size:12px;color:var(--text3)">'+t().sresetd+'</div></div><button class="reset-btn" onclick="confirmReset()">Reset</button></div></div>';
+  h+='<div class="brand-footer">🏠 HomeVault v2.0 · '+t().tag+'</div>';
+  el.innerHTML=h;
+  // Build lang chips
+  var lc=document.getElementById('set-langs');
+  Object.keys(T).forEach(function(k){
+    var b=document.createElement('button');b.className='lang-chip'+(k===lang?' active':'');
+    b.innerHTML=FLAGS[k]+' '+LNAMES[k];
+    b.onclick=function(){lang=k;cfg.lang=k;saveCfg();document.documentElement.dir=k==='ar'?'rtl':'ltr';buildApp();buildNav();checkAll()};
+    lc.appendChild(b);
+  });
+}
+
+function confirmReset(){
+  var rc=document.getElementById('reset-card');
+  rc.querySelector('.reset-row').innerHTML='<div><div style="font-size:14px;font-weight:500">'+t().sreset+'</div></div><div style="display:flex;gap:6px"><button class="reset-cancel" onclick="buildSettings()">✕</button><button class="reset-confirm" onclick="clearCfg()">✓ '+t().sresetc+'</button></div>';
+}
+
+// ── Init ──
+loadCfg();
+if(cfg){
+  document.getElementById('wizard').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+  buildApp();
+  checkAll();
+  setInterval(checkAll,25000);
+}else{
+  initWizard();
+}
+</script>
+</body>
+</html>
